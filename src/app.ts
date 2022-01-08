@@ -13,6 +13,21 @@ const context: CanvasRenderingContext2D = canvas.getContext('2d');
 
 const game = new Game (context, gameScreenWidth, gameScreenHeight);
 
+addEventListener('keyup', (event) => {
+    if (event.key === 'ArrowRight') {
+        game.turnOffPlayerMovement();
+        game.turnOnPlayerMovement('right');
+    }
+
+    if (event.key === 'ArrowLeft') {
+        game.turnOffPlayerMovement();
+        game.turnOnPlayerMovement('left');
+    }
+
+    if (event.key === 'ArrowDown') {
+        game.turnOffPlayerMovement();
+    }
+});
 game.start();
 
 
