@@ -1,0 +1,29 @@
+body {
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    background-color: lightgray;
+}
+
+#canvas {
+    background-color: #252525;
+    position: relative;
+    width: 500px;
+    height: 100vh;
+}
+
+#canvas #topbar {
+    position: absolute;
+    top : 0;
+    left: 0;
+    width: 100%;
+    background-color: black;
+}
+
+#floor {
+    position: absolute;
+    bottom: 50px;
+    background-color: grey;
+    width: 100%;
+    height: 2px;
+}
