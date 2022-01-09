@@ -33,6 +33,11 @@ export class Game {
     items: Item[] = [];
     score: number;
     missingItems: number;
+    
+    itemGenInterval: number;
+    bombGenInterval: number;
+
+    idItemGenInterval: any;
 
     constructor (context: CanvasRenderingContext2D, gameScreenWidth: number, gameScreenHeight: number) {
         this.context = context;
@@ -46,7 +51,8 @@ export class Game {
         this.player = new Player(this.gameScreenWidth, this.gameScreenHeight);
         this.idPlayerMovement;
         this.missingItems = 0;
-
+        this.itemGenInterval = 1500;
+        this.bombGenInterval = 2000;
     }
 
     drawBackground() {
@@ -196,6 +202,15 @@ export class Game {
         }
     }
 
+    turn () {
+        if (this.itemGenInterval > 500) this.increaseDificulty();
+    }
+
+    increaseDificulty () {
+        this.itemGenInterval -= 200;
+        this.loadItemGenenerator();
+    }
+
     gameLoop () {
         this.drawBackground();
         this.drawLives();
@@ -204,17 +219,27 @@ export class Game {
         this.drawItems();
     }
 
+    loadItemGenenerator() {
+        if (this.idItemGenInterval) clearInterval(this.idItemGenInterval)
+        
+        this.idItemGenInterval = setInterval(() => {
+            this.items.push(genRandomItem(this));
+        }, this.itemGenInterval);
+    } 
+
     start () {
         setInterval(() => {
             this.gameLoop();
         }, this.fps);
 
-        setInterval(() => {
-            this.items.push(genRandomItem(this));
-        }, 1500);
+        this.loadItemGenenerator();
 
         setInterval(() => {
             this.items.push(genBomb(this));
-        }, 2000);
+        }, this.bombGenInterval);
+
+        setInterval(() => {
+            this.turn();
+        }, 5000);
     }
 }
