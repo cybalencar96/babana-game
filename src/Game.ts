@@ -1,12 +1,6 @@
 import { Player } from './Player';
 import { Item } from './Item';
-import { Banana } from './Banana';
-import { getRandomInt } from './helpers/globalFunctions';
-import { Orange } from './Orange';
-import { Apple } from './Apple';
-import { Watermelon } from './Watermelon';
-import { Strawberry } from './Strawberry';
-import { Bomb } from './Bomb';
+import { genRandomItem, genBomb } from './itemFactory';
 
 export class Game {
     context: CanvasRenderingContext2D;
@@ -20,6 +14,7 @@ export class Game {
     fps: number;
     items: Item[] = [];
     score: number;
+    missingItems: number;
 
     constructor (context: CanvasRenderingContext2D, gameScreenWidth: number, gameScreenHeight: number) {
         this.context = context;
@@ -32,6 +27,8 @@ export class Game {
         this.score = 0;
         this.player = new Player(this.gameScreenWidth, this.gameScreenHeight);
         this.idPlayerMovement;
+
+        this.missingItems = 0;
 
     }
 
@@ -104,7 +101,7 @@ export class Game {
         );
 
         this.checkColision(item);
-        // this.checkItemOutOfScreen(item);
+        this.checkItemOutOfScreen(item);
         item.move();
     }
 
@@ -112,22 +109,6 @@ export class Game {
         this.items.map(item => {
             this.drawItem(item);
         });
-    }
-
-    genRandomItem () {
-        const random = Math.random();
-        const randXPos = getRandomInt(0, this.gameScreenWidth);
-
-        if (random >= 0 && random <= 0.3) return new Orange({ x: randXPos, y: this.topbarHeight });
-        if (random > 0.3 && random <= 0.6) return new Apple({ x: randXPos, y: this.topbarHeight });
-        if (random > 0.6 && random <= 0.8) return new Watermelon({ x: randXPos, y: this.topbarHeight });
-        if (random > 0.8 && random <= 0.95) return new Strawberry({ x: randXPos, y: this.topbarHeight });
-        if (random > 0.95 && random <= 1) return new Banana({ x: randXPos, y: this.topbarHeight });
-    }
-
-    genBomb() {
-        const randXPos = getRandomInt(0, this.gameScreenWidth);
-        return new Bomb({ x: randXPos, y: this.topbarHeight });
     }
 
     turnOnPlayerMovement(direction: string) {
@@ -162,7 +143,10 @@ export class Game {
             if (item.getType() === 'bomb') {
                 this.player.loseLife();
                 this.checkGameOver();
+                return;
             }
+
+            this.missingItems = 0;
 
             if (item.getType() === 'banana') {
                 this.score *= 2;
@@ -172,16 +156,11 @@ export class Game {
         }
     }
 
-    checkGameOver () {
-        if (this.player.getLife() === 0) {
-            alert('END GAME - Score: ' + this.score);
-            window.location.reload();
-        }
-    }
-
     checkItemOutOfScreen (item: Item) {
         if (item.getPosition().y >= this.gameScreenHeight) {
+            if (item.getType() !== 'bomb') this.missingItems += 1;
             this.destroyItem(item);
+            this.checkGameOver();
         }
     }
 
@@ -189,6 +168,18 @@ export class Game {
         const index = this.items.indexOf(item);
         if (index > -1) {
             this.items.splice(index, 1);
+        }
+    }
+
+    checkGameOver () {
+        if (this.missingItems === 4) {
+            alert('END GAME - Score: ' + this.score);
+            window.location.reload();  
+        }
+
+        if (this.player.getLife() === 0) {
+            alert('END GAME - Score: ' + this.score);
+            window.location.reload();
         }
     }
 
@@ -206,11 +197,11 @@ export class Game {
         }, this.fps);
 
         setInterval(() => {
-            this.items.push(this.genRandomItem());
+            this.items.push(genRandomItem(this.gameScreenWidth, this.topbarHeight));
         }, 1500);
 
         setInterval(() => {
-            this.items.push(this.genBomb());
-        }, 1500);
+            this.items.push(genBomb(this.gameScreenWidth, this.topbarHeight));
+        }, 2000);
     }
 }
