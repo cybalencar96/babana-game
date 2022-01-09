@@ -11,6 +11,7 @@ canvas.height = gameScreenHeight;
 const context: CanvasRenderingContext2D = canvas.getContext('2d');
 
 
+
 const game = new Game (context, gameScreenWidth, gameScreenHeight);
 
 addEventListener('keyup', (event) => {

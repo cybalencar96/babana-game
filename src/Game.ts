@@ -2,6 +2,24 @@ import { Player } from './Player';
 import { Item } from './Item';
 import { genRandomItem, genBomb } from './itemFactory';
 
+function createImage(path: string){
+    let image = new Image();
+    image.src = path;
+    return image;
+}
+ 
+const images = {
+    orange: createImage('./assets/sprites/orange.png'),
+    strawberry: createImage('./assets/sprites/strawberry.png'),
+    banana: createImage('./assets/sprites/banana.png'),
+    apple: createImage('./assets/sprites/red-apple.png'),
+    watermelon: createImage('./assets/sprites/watermelon.png'),
+    bomb: createImage('./assets/sprites/bomb.png'),
+    player: createImage('./assets/sprites/alien.png'),
+    heart: createImage('./assets/sprites/heart.png'),
+    heartEmpty: createImage('./assets/sprites/heart-empty.png'),
+}
+
 export class Game {
     context: CanvasRenderingContext2D;
     gameScreenWidth: number;
@@ -27,7 +45,6 @@ export class Game {
         this.score = 0;
         this.player = new Player(this.gameScreenWidth, this.gameScreenHeight);
         this.idPlayerMovement;
-
         this.missingItems = 0;
 
     }
@@ -46,10 +63,8 @@ export class Game {
     }
 
     drawPlayer () {
-        const playerImg = new Image(60,60);
-        playerImg.src = './assets/sprites/alien.png'
-        playerImg.onload = () => this.context.drawImage(
-            playerImg, 
+        this.context.drawImage(
+            images.player, 
             this.player.getPosition().x, 
             this.player.getPosition().y, 
             this.player.getHitbox().width, 
@@ -58,12 +73,10 @@ export class Game {
     }
 
     drawLife (hasLife: boolean, xPos: number) {
-        const life = new Image(60,60);
-        life.src = hasLife ? './assets/sprites/heart.png' : './assets/sprites/heart-empty.png';
-
+        const lifeType = hasLife ? 'heart' : 'heartEmpty';
         const centralizedLifeHeight = this.topbarHeight / 2 - this.lifeSize / 2;
 
-        life.onload = () => this.context.drawImage(life, xPos, centralizedLifeHeight, this.lifeSize, this.lifeSize);
+       this.context.drawImage(images[lifeType], xPos, centralizedLifeHeight, this.lifeSize, this.lifeSize);
     }
 
     drawLives () {
@@ -90,10 +103,10 @@ export class Game {
     }
 
     drawItem (item: Item) {
-        const itemImage = new Image();
-        itemImage.src = item.getImage().dir;
-        itemImage.onload = () => this.context.drawImage(
-            itemImage, 
+        const itemtype = item.getType();
+        
+        this.context.drawImage(
+            images[itemtype as keyof typeof images], 
             item.getPosition().x, 
             item.getPosition().y, 
             item.getImage().hitbox.width, 
@@ -135,7 +148,7 @@ export class Game {
         const playerYEnd = playerYStart + this.player.getHitbox().height;
 
         if (
-            itemXStart >= playerXStart && itemXEnd <= playerXEnd &&
+            itemXEnd >= playerXStart && itemXStart <= playerXEnd &&
             itemYEnd >= playerYStart && !(itemYStart > playerYEnd)
         ) {
             this.destroyItem(item);
@@ -197,11 +210,11 @@ export class Game {
         }, this.fps);
 
         setInterval(() => {
-            this.items.push(genRandomItem(this.gameScreenWidth, this.topbarHeight));
+            this.items.push(genRandomItem(this));
         }, 1500);
 
         setInterval(() => {
-            this.items.push(genBomb(this.gameScreenWidth, this.topbarHeight));
+            this.items.push(genBomb(this));
         }, 2000);
     }
 }
