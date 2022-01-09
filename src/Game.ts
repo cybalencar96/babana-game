@@ -22,37 +22,45 @@ const images = {
 
 export class Game {
     context: CanvasRenderingContext2D;
+
     gameScreenWidth: number;
     gameScreenHeight: number;
     topbarHeight: number;
     floorHeight: number;
     lifeSize: number;
-    player: Player;
-    idPlayerMovement: any;
     fps: number;
+    
+    player: Player;
     items: Item[] = [];
-    score: number;
     missingItems: number;
+    score: number;
     
     itemGenInterval: number;
     bombGenInterval: number;
-
+    turnInterval: number;
     idItemGenInterval: any;
+    idBombGenInterval: any;
+    idPlayerMovement: any;
+    idTurnInternval: any;
 
     constructor (context: CanvasRenderingContext2D, gameScreenWidth: number, gameScreenHeight: number) {
         this.context = context;
-        this.fps = 1000 / 60;
+
         this.gameScreenHeight = gameScreenHeight;
         this.gameScreenWidth = gameScreenWidth;
         this.topbarHeight = 100;
         this.floorHeight = 50;
         this.lifeSize = 40;
-        this.score = 0;
+        this.fps = 1000 / 60;
+        
         this.player = new Player(this.gameScreenWidth, this.gameScreenHeight);
-        this.idPlayerMovement;
+        this.score = 0;
         this.missingItems = 0;
+        
+        this.idPlayerMovement;
         this.itemGenInterval = 1500;
         this.bombGenInterval = 2000;
+        this.turnInterval = 5000;
     }
 
     drawBackground() {
@@ -69,13 +77,42 @@ export class Game {
     }
 
     drawPlayer () {
+        if (this.player.getDirection() === 'right') {
+            this.context.drawImage(
+                images.player, 
+                this.player.getPosition().x, 
+                this.player.getPosition().y, 
+                this.player.getHitbox().width, 
+                this.player.getHitbox().height
+            );
+        } else {
+            this.drawPlayerMirroring();
+        }
+        
+    }
+
+    drawPlayerMirroring(){
+        // move to x + img's width
+        this.context.translate(
+            this.player.getPosition().x + this.player.getHitbox().width,
+            this.player.getPosition().y
+        );
+    
+        // scaleX by -1; this "trick" flips horizontally
+        this.context.scale(-1,1);
+        
+        // draw the img
+        // no need for x,y since we've already translated
         this.context.drawImage(
             images.player, 
-            this.player.getPosition().x, 
-            this.player.getPosition().y, 
+            0, 
+            0, 
             this.player.getHitbox().width, 
             this.player.getHitbox().height
         );
+
+        // always clean up -- reset transformations to default
+        this.context.setTransform(1,0,0,1,0,0);
     }
 
     drawLife (hasLife: boolean, xPos: number) {
@@ -220,26 +257,39 @@ export class Game {
     }
 
     loadItemGenenerator() {
-        if (this.idItemGenInterval) clearInterval(this.idItemGenInterval)
+        if (this.idItemGenInterval) clearInterval(this.idItemGenInterval);
         
         this.idItemGenInterval = setInterval(() => {
             this.items.push(genRandomItem(this));
         }, this.itemGenInterval);
     } 
 
-    start () {
+    loadBombGenerator () {
+        if (this.idBombGenInterval) clearInterval(this.idBombGenInterval);
+
+        this.idBombGenInterval = setInterval(() => {
+            this.items.push(genBomb(this));
+        }, this.bombGenInterval);
+    }
+
+    loadTurnGenerator() {
+        if (this.idTurnInternval) clearInterval(this.idTurnInternval);
+        
+        this.idTurnInternval = setInterval(() => {
+            this.turn();
+        }, this.turnInterval);
+    }
+
+    loadGameloopGenerator() {
         setInterval(() => {
             this.gameLoop();
         }, this.fps);
+    }
 
+    start () {
+        this.loadGameloopGenerator();
         this.loadItemGenenerator();
-
-        setInterval(() => {
-            this.items.push(genBomb(this));
-        }, this.bombGenInterval);
-
-        setInterval(() => {
-            this.turn();
-        }, 5000);
+        this.loadBombGenerator();
+        this.loadTurnGenerator();
     }
 }

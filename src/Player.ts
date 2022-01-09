@@ -10,6 +10,7 @@ export class Player {
     private position: IPosition;
     private life: number;
     private maxLife: number;
+    private direction: string;
 
     constructor (gameScreenWidth: number, gameScreenHeight: number) {
         this.gameScreenWidth = gameScreenWidth;
@@ -25,6 +26,7 @@ export class Player {
         this.maxLife = 4;
         this.life = this.maxLife;
         this.speed = 3;
+        this.direction = 'right';
     }
 
     validateX (x: number) {
@@ -32,6 +34,7 @@ export class Player {
     }
 
     move(direction: string) {
+        this.direction = direction;
         let newX;
 
         if (direction === 'left') newX = this.position.x - this.speed;
@@ -57,6 +60,10 @@ export class Player {
             width: this.hitBoxWidth,
             height: this.hitBoxHeight,
         }
+    }
+
+    getDirection () {
+        return this.direction;
     }
 
     loseLife () {
